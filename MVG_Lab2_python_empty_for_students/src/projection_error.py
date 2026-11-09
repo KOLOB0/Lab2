@@ -16,7 +16,6 @@ def projection_error(H12, CL1uv, CL2uv):
         numpy.ndarray: Set of L2 norm's calculated between the original and projected points. Size: Nx1, with N number of points.
     """
 
-    # Project coordinates of second image onto first one
     #convert the Nx2 (u, v) points to homgenous Nx3 points (u, v, 1)
     CL2uv_homogenous = np.column_stack((CL2uv, np.ones(CL2uv.shape[0])))
 

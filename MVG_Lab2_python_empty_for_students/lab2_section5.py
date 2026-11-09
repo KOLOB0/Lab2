@@ -13,7 +13,8 @@ def Section5():
     ############## LOAD DATA ################
 
     # Load features from disk 
-    project_dir = os.getcwd()
+    #project_dir = os.getcwd()
+    project_dir = os.path.dirname(os.path.abspath(__file__))
     features_path = os.path.join(project_dir, "DataSet01", "Features.mat")
     mat = scipy.io.loadmat(features_path)["Features"][0]
 

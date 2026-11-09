@@ -24,6 +24,7 @@ def compute_homography_ransac(CL1uv, CL2uv, model):
 
     outlier_percent = 0.5   # Outliers percentage
 
+
     if model == "Translation":
         dof = 2
     elif model == "Similarity":
@@ -39,37 +40,59 @@ def compute_homography_ransac(CL1uv, CL2uv, model):
     if dof/2 > num_matches:
         print("Not enough matching points..")
         return None 
-    
+
+    #will iterate through randomly chose pairs of idxs of the CL1uv and CL2uv
+    #will store best idx pair and update when a new iteration is better
     best_inlier_idxs = None 
     best_consensus_percent = 0.0
 
     # Calculate the number of iterations according to the current number of estimated outliers and the target outlier percentage.
     num_iter = abs((log(1-p)) / (log(1-(1-outlier_percent)**dof) + 1e-6))
 
+    
+    #need to figure number of pairs necessary to compute homography
+    sample_size = dof // 2
+
+
+    rng = np.random.default_rng()
     for _ in range(int(num_iter)):
 
+        
+        #choosing random set of pairs to use to compute the homography
+        idxs = rng.choice(num_matches, size=sample_size, replace = False)
+
         # Select a number of random point indices  
+        sample1 = CL1uv[idxs]              #randomly sample from CL1uv
+        sample2 = CL2uv[idxs]              #randomly sample from CL2uv
 
 
         # Estimate the Homography with the selected points
-
+        H = compute_homography(sample1, sample2, model)
 
         if np.any(np.isnan(H)):
             #If there are problems with H estimation the consensus is valued as null
+            
+            #consensus_percent = 0
+            continue
 
         else:
             # Compute the consesus related to estimated H
+            errors = projection_error(H, CL2uv, CL1uv)
+            inliers = errors < t # t is the RANSAC threshold set earlier
+            consensus_percent = np.count_nonzero(inliers) / num_matches
 
 
             # Update best Homography found
+            if consensus_percent > best_consensus_percent:
+                best_consensus_percent = consensus_percent
+                best_inlier_idxs = np.flatnonzero(inliers)
+                
 
         # Exit condition
         if consensus_percent >= p:
             break
 
     # Estimate the Homography with the best inliers 
- 
+    H = compute_homography(CL1uv[best_inlier_idxs], CL2uv[best_inlier_idxs], model)
 
     return H
-    
-        
