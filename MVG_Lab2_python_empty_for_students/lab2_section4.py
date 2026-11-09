@@ -1,19 +1,19 @@
 import os 
-import cv2 
+import cv2
 import matplotlib.pyplot as plt 
 import scipy 
 import numpy as np
 
 from src.internal.match_sift import match_sift, draw_matches_opencv
 from src.internal.show_warped_images import show_warped_images
-#from src.compute_homography import compute_homography
+from src.compute_homography import compute_homography
 
 def Section4():
 
     ############## LOAD DATA ################
 
     # Load features from disk 
-    project_dir = os.getcwd()
+    project_dir = os.path.dirname(os.path.abspath(__file__))
     features_path = os.path.join(project_dir, "DataSet01", "Features.mat")
     mat = scipy.io.loadmat(features_path)["Features"][0]
 

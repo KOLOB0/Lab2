@@ -32,6 +32,11 @@ def compute_homography(CL1uv, CL2uv, model):
     CL1uv = np.array((T1 @  CL1uv_hom.T ).T)
     CL2uv = np.array((T2 @ CL2uv_hom.T ).T)
 
+
+    u, v = CL1uv[:, 0], CL1uv[:, 1]
+    U, V = CL2uv[:, 0], CL2uv[:, 1]
+
+
     if model == "Translation":
         
         # Create Q matrix 
@@ -41,43 +46,101 @@ def compute_homography(CL1uv, CL2uv, model):
 
         # Create b vector
         b = np.zeros((2*N), dtype=np.float64)
-        b[::2] = CL2uv[:,0] - CL1uv[:,0]   
-        b[1::2] = CL2uv[:,1] - CL1uv[:,1] 
+        b[::2] = CL2uv[:,0] - CL1uv[:,0]   #horizontal movement difference
+        b[1::2] = CL2uv[:,1] - CL1uv[:,1]  #vertical movement difference
 
         # Calculate translation coefficients and build Homography
         x,_,_,_ = lstsq(Q, b)
-        (tx, ty) = np.squeeze(x)
+        (tx, ty) = np.squeeze(x) #removes dimensions of 1
         A = np.eye(3)
         A[:2,2] = [tx, ty]
 
     elif model == "Similarity":
-        
-        # Create Q matrix 
-                                
+
+        # Create Q matrix
+        Q = np.zeros((2*N, 4))
+        Q[::2, 0] = u
+        Q[::2, 1] = -v
+        Q[::2, 2] = 1
+
+        Q[1::2, 0] = v
+        Q[1::2, 1] = u
+        Q[1::2, 3] = 1                  
 
         # Create b vector
+        b = np.zeros(2*N)
+        b[::2] = U
+        b[1::2] = V       
 
         # Calculate similarity coefficients and build Homography
+        x, _, _, _ = lstsq(Q, b)
+        a, beta, tx, ty = x
+
+        A = np.array([
+            [a, -beta, tx],
+            [beta, a, ty],
+            [0, 0, 1]
+        ])
 
 
     elif model == "Affine":
         
-        # Create Q matrix 
+        # Create Q matrix
+        Q = np.zeros((2*N, 6))
+        Q[::2, 0] = u
+        Q[::2, 1] = v
+        Q[::2, 2] = 1
+
+        Q[1::2, 3] = u
+        Q[1::2, 4] = v
+        Q[1::2, 5] = 1
 
         # Create b vector
+        b = np.zeros(2*N)
+        b[::2] = U
+        b[1::2] = V
 
 
         # Calculate affine coefficients and build Homography
+        x, _, _, _ = lstsq(Q, b)
+
+        A = np.array([
+            [x[0], x[1], x[2]],
+            [x[3], x[4], x[5]],
+            [0, 0, 1]
+        ])
 
     elif model == "Projective":
         
-        # Create Q matrix 
+        # Create Q matrix
+        Q = np.zeros((2*N, 8))
+        Q[::2, 0] = u
+        Q[::2, 1] = v
+        Q[::2, 2] = 1
+        Q[::2, 6] = -U * u
+        Q[::2, 7] = -U * v
+
+        Q[1::2, 3] = u
+        Q[1::2, 4] = v
+        Q[1::2, 5] = 1
+        Q[1::2, 6] = -V * u
+        Q[1::2, 7] = -V * v 
 
 
         # Create b vector
+        b = np.zeros(2*N)
+        b[::2] = U
+        b[1::2] = V
   
 
         # Calculate projective coefficients and build Homography
+        x, _, _, _ = lstsq(Q, b)
+
+        A = np.array([
+            [x[0], x[1], x[2]],
+            [x[3], x[4], x[5]],
+            [x[6], x[7], 1]
+        ])
 
     else:
         print("Invalid model, returning identity homography")
