@@ -6,7 +6,7 @@ def projection_error(H12, CL1uv, CL2uv):
     (errorVec).  This vector will contain the Euclidean distance between each
     point in CL1uv and its corresponding point in CL2uv after applying the
     homography  H12.
-
+ 
     Args:
         H12 (numpy.ndarray): Homography relating image #1 and image #2. 3x3 matrix.
         CL1uv (numpy.ndarray): Set of points on image #1. Each row represents a 2-D point (u,v). Size: Nx2, with N number of points.

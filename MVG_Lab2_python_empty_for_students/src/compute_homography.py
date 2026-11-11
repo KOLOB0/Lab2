@@ -38,7 +38,6 @@ def compute_homography(CL1uv, CL2uv, model):
 
 
     if model == "Translation":
-        
         # Create Q matrix 
         Q = np.zeros((2*N,2), dtype=np.float64)
         Q[::2,0] = 1.0    
@@ -56,7 +55,6 @@ def compute_homography(CL1uv, CL2uv, model):
         A[:2,2] = [tx, ty]
 
     elif model == "Similarity":
-
         # Create Q matrix
         Q = np.zeros((2*N, 4))
         Q[::2, 0] = u
@@ -79,12 +77,10 @@ def compute_homography(CL1uv, CL2uv, model):
         A = np.array([
             [a, -beta, tx],
             [beta, a, ty],
-            [0, 0, 1]
-        ])
+            [0, 0, 1] ])
 
 
-    elif model == "Affine":
-        
+    elif model == "Affine":      
         # Create Q matrix
         Q = np.zeros((2*N, 6))
         Q[::2, 0] = u
@@ -100,18 +96,15 @@ def compute_homography(CL1uv, CL2uv, model):
         b[::2] = U
         b[1::2] = V
 
-
-        # Calculate affine coefficients and build Homography
+         # Calculate affine coefficients and build Homography
         x, _, _, _ = lstsq(Q, b)
 
         A = np.array([
             [x[0], x[1], x[2]],
             [x[3], x[4], x[5]],
-            [0, 0, 1]
-        ])
+            [0, 0, 1] ])
 
     elif model == "Projective":
-        
         # Create Q matrix
         Q = np.zeros((2*N, 8))
         Q[::2, 0] = u
@@ -126,21 +119,18 @@ def compute_homography(CL1uv, CL2uv, model):
         Q[1::2, 6] = -V * u
         Q[1::2, 7] = -V * v 
 
-
         # Create b vector
         b = np.zeros(2*N)
         b[::2] = U
         b[1::2] = V
   
-
         # Calculate projective coefficients and build Homography
         x, _, _, _ = lstsq(Q, b)
 
         A = np.array([
             [x[0], x[1], x[2]],
             [x[3], x[4], x[5]],
-            [x[6], x[7], 1]
-        ])
+            [x[6], x[7], 1] ])
 
     else:
         print("Invalid model, returning identity homography")
